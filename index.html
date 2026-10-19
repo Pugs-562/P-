@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Tavern & Trade: Guild Masters</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      font-family: 'Arial Black', Impact, sans-serif;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background: #0d0e15;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      color: white;
+    }
+    /* Mobile Device Frame */
+    #game-container {
+      width: 390px;
+      height: 844px;
+      background: #1a2233;
+      border: 8px solid #000;
+      border-radius: 36px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    }
+
+    /* 1. TOP STATUS BAR */
+    .top-bar {
+      height: 70px;
+      background: linear-gradient(180deg, #1b263b 0%, #0d131d 100%);
+      border-bottom: 4px solid #f3a812;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      z-index: 10;
+    }
+    .level-badge {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, #1e90ff, #004080);
+      border: 3px solid #ffd700;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      text-shadow: 2px 2px #000;
+      box-shadow: 0 4px 0 #000;
+    }
+    .resource-pill {
+      background: #0a1118;
+      border: 2px solid #3a4b6e;
+      border-radius: 20px;
+      padding: 4px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+    }
+    .add-btn {
+      background: #28a745;
+      border: none;
+      color: white;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 2. ISOMETRIC VIEWPORT */
+    #viewport {
+      flex: 1;
+      position: relative;
+      background: radial-gradient(circle, #2a3a5c 0%, #0f172a 100%);
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* 3. SUPPLY CRATE SLOTS */
+    .crate-section {
+      height: 110px;
+      background: #131924;
+      border-top: 3px solid #2a3850;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 10px;
+      z-index: 10;
+    }
+    .crate-slot {
+      background: #1c2638;
+      border: 3px solid #3b4d6c;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #0d131d;
+    }
+    .crate-slot.has-crate {
+      border-color: #f3a812;
+      background: linear-gradient(180deg, #3a2a18 0%, #1c2638 100%);
+    }
+    .crate-timer {
+      position: absolute;
+      bottom: -6px;
+      background: #e63946;
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      border: 1px solid #fff;
+    }
+
+    /* 4. MAIN ACTION BAR */
+    .action-bar {
+      height: 90px;
+      background: #101622;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 15px;
+      z-index: 10;
+    }
+    .sec-btn {
+      width: 54px;
+      height: 54px;
+      background: linear-gradient(180deg, #2b7fff 0%, #154296 100%);
+      border: 3px solid #82b3ff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 5px 0 #0a1e46;
+      cursor: pointer;
+    }
+    .sec-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 #0a1e46;
+    }
+    .craft-btn {
+      width: 170px;
+      height: 60px;
+      background: linear-gradient(180deg, #ffb703 0%, #fb8500 100%);
+      border: 4px solid #fff;
+      border-radius: 30px;
+      color: #fff;
+      font-size: 22px;
+      letter-spacing: 1px;
+      text-shadow: 2px 2px 0 #8f4f00, -1px -1px 0 #8f4f00, 1px -1px 0 #8f4f00, -1px 1px 0 #8f4f00;
+      box-shadow: 0 6px 0 #a65200, 0 10px 10px rgba(0,0,0,0.5);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .craft-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #a65200;
+    }
+
+    /* 5. BOTTOM NAVIGATION BAR */
+    .nav-bar {
+      height: 70px;
+      background: #0a0f18;
+      border-top: 3px solid #222e45;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 10;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 10px;
+      color: #64748b;
+      cursor: pointer;
+    }
+    .nav-item.active {
+      color: #ffb703;
+      transform: scale(1.1);
+    }
+    .nav-icon {
+      font-size: 20px;
+      margin-bottom: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="game-container">
+  <!-- 1. TOP STATUS BAR -->
+  <div class="top-bar">
+    <div class="level-badge" id="lvl">12</div>
+    <div class="resource-pill">🪙 <span id="gold">142500</span> <button class="add-btn">+</button></div>
+    <div class="resource-pill">💎 <span id="gems">1250</span> <button class="add-btn">+</button></div>
+  </div>
+
+  <!-- 2. CENTRAL VIEWPORT -->
+  <div id="viewport">
+    <canvas id="tavernCanvas"></canvas>
+  </div>
+
+  <!-- 3. SUPPLY CRATE SLOTS -->
+  <div class="crate-section">
+    <div class="crate-slot has-crate" onclick="claimCrate(0)">
+      <span>📦</span>
+      <span class="crate-timer" id="crate-0">READY!</span>
+    </div>
+    <div class="crate-slot" id="slot-1" onclick="claimCrate(1)">
+      <span id="icon-1">🔒</span>
+      <span style="font-size: 9px; color: #64748b;" id="txt-1">EMPTY</span>
+    </div>
+    <div class="crate-slot" id="slot-2" onclick="claimCrate(2)">
+      <span id="icon-2">🔒</span>
+      <span style="font-size: 9px; color: #64748b;" id="txt-2">EMPTY</span>
+    </div>
+    <div class="crate-slot" style="opacity: 0.5;">
+      <span>🔒</span>
+      <span style="font-size: 8px; color: #aaa;">LVL 15</span>
+    </div>
+  </div>
+
+  <!-- 4. MAIN ACTION BAR -->
+  <div class="action-bar">
+    <div class="sec-btn" onclick="alert('Recipe Book: 24/50 Unlocked!')">📜</div>
+    <button class="craft-btn" onclick="triggerCraft()">CRAFT ⚡</button>
+    <div class="sec-btn" onclick="alert('Guild Orders: Active')">🛡️</div>
+  </div>
+
+  <!-- 5. BOTTOM NAVIGATION BAR -->
+  <div class="nav-bar">
+    <div class="nav-item"><span class="nav-icon">🛒</span>Shop</div>
+    <div class="nav-item"><span class="nav-icon">🃏</span>Cards</div>
+    <div class="nav-item active"><span class="nav-icon">🔨</span>Craft</div>
+    <div class="nav-item"><span class="nav-icon">🛡️</span>Guild</div>
+    <div class="nav-item"><span class="nav-icon">🏆</span>Rank</div>
+  </div>
+</div>
+
+<script>
+  // Game State
+  let gold = 142500;
+  let gems = 1250;
+  let crates = [true, false, false];
+
+  function updateUI() {
+    document.getElementById('gold').innerText = gold.toLocaleString();
+    document.getElementById('gems').innerText = gems.toLocaleString();
+  }
+
+  function triggerCraft() {
+    gold += 250;
+    updateUI();
+    
+    // Add crate if space available
+    for(let i = 1; i < 3; i++) {
+      if(!crates[i]) {
+        crates[i] = true;
+        document.getElementById(`slot-${i}`).classList.add('has-crate');
+        document.getElementById(`icon-${i}`).innerText = '📦';
+        document.getElementById(`txt-${i}`).innerText = 'READY!';
+        document.getElementById(`txt-${i}`).style.color = '#00ffcc';
+        break;
+      }
+    }
+  }
+
+  function claimCrate(index) {
+    if(crates[index]) {
+      crates[index] = false;
+      gems += 15;
+      gold += 1000;
+      updateUI();
+
+      if(index === 0) {
+        document.getElementById('crate-0').innerText = '02h 15m';
+      } else {
+        document.getElementById(`slot-${index}`).classList.remove('has-crate');
+        document.getElementById(`icon-${index}`).innerText = '🔒';
+        document.getElementById(`txt-${index}`).innerText = 'EMPTY';
+        document.getElementById(`txt-${index}`).style.color = '#64748b';
+      }
+    }
+  }
+
+  // Canvas Isometric Rendering
+  const canvas = document.getElementById('tavernCanvas');
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width = canvas.parentElement.clientWidth;
+    canvas.height = canvas.parentElement.clientHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  let angle = 0;
+  function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2 + 20;
+
+    // Subtle floating animation
+    const floatOffset = Math.sin(angle) * 8;
+    angle += 0.04;
+
+    // Draw Isometric Floating Island Top (Grass)
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY - 80 + floatOffset);
+    ctx.lineTo(centerX + 130, centerY + floatOffset);
+    ctx.lineTo(centerX, centerY + 80 + floatOffset);
+    ctx.lineTo(centerX - 130, centerY + floatOffset);
+    ctx.closePath();
+    ctx.fillStyle = '#419d28';
+    ctx.fill();
+    ctx.strokeStyle = '#1e4810';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    // Draw Floating Dirt Base
+    ctx.beginPath();
+    ctx.moveTo(centerX - 130, centerY + floatOffset);
+    ctx.lineTo(centerX, centerY + 80 + floatOffset);
+    ctx.lineTo(centerX + 130, centerY + floatOffset);
+    ctx.lineTo(centerX, centerY + 140 + floatOffset);
+    ctx.closePath();
+    ctx.fillStyle = '#5c3a21';
+    ctx.fill();
+    ctx.strokeStyle = '#29180c';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    // Draw Isometric Wooden Tavern
+    const tx = centerX - 35;
+    const ty = centerY - 60 + floatOffset;
+
+    // Front Wall
+    ctx.fillStyle = '#b06d36';
+    ctx.fillRect(tx, ty, 70, 50);
+    ctx.strokeStyle = '#3d2008';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(tx, ty, 70, 50);
+
+    // Glowing Door / Light
+    ctx.fillStyle = '#ffd000';
+    ctx.fillRect(tx + 25, ty + 20, 20, 30);
+
+    // Roof
+    ctx.beginPath();
+    ctx.moveTo(tx - 10, ty);
+    ctx.lineTo(centerX, ty - 40);
+    ctx.lineTo(tx + 80, ty);
+    ctx.closePath();
+    ctx.fillStyle = '#d93829';
+    ctx.fill();
+    ctx.strokeStyle = '#5e0f07';
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    requestAnimationFrame(render);
+  }
+
+  render();
+</script>
+</body>
+</html>
